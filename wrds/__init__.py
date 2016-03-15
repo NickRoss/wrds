@@ -37,6 +37,7 @@ class WRDS():
         except Exception as e:
             print(e)
 
+
     def _parse_config(self, file_location):
         Config = configparser.ConfigParser()
 
@@ -56,11 +57,11 @@ class WRDS():
 
     def _usage(self):
         if platform.system() == 'Windows':
-            home_dir = os.path.expanduser('~'+getpass.getuser())
+            home_dir = os.path.expanduser('~' + getpass.getuser())
         else:
             home_dir = os.path.expanduser('~')
 
-        print('Please include a .wrdsauthrc file in your home directory ({}) formatted as below:\n'.format(home_dir))
+        print('Please include .wrdsauthrc file in your home directory ({}) formatted as below:\n'.format(home_dir))
 
         err = '[credentials]\n'
         err += 'username=<username>\n'
@@ -88,7 +89,9 @@ class WRDS():
             print('\'help(wrds)\' to learn how to interact with the system.')
 
     def _verify_credentials(self, username, password):
+
         if self._authenticate(username, password):
+
             self._greet_if_interactive()
         else:
             err = '\nThe credentials found in {} could not be used to authenticate.\n'.format(self.AUTHFILE)
@@ -101,7 +104,7 @@ class WRDS():
         paths_to_check = classpath.split(path_delimiter)
 
         if paths_to_check == ['']: # The user may have not included any paths in the classpath section
-            err = '\nPlease specify paths for the JDBC drivers in the classpath section of {}'.format(AUTHFILE)
+            err = '\nPlease specify paths for the JDBC drivers in the classpath section of {}'.format(self.AUTHFILE)
             raise SyntaxError(err)
 
         for path in paths_to_check:
@@ -120,8 +123,10 @@ class WRDS():
             classpath_delimiter = ':'
 
         username, password, classpath = config_settings
+
         self._verify_and_set_classpath(classpath, classpath_delimiter)
         self._verify_credentials(username, password)
+
 
     def __init__(self, username=None, password=None, classpath=None):
 
@@ -141,9 +146,17 @@ class WRDS():
             else:
                 self._usage()
         elif all(i != None for i in (username, password, classpath)):
-            ### All three specified
-            pass
+
+            self._verify_classpath_and_credentials(
+                (username, password, classpath)
+            )
+            self.CONN = self._authenticate(username, password)
 
         else:
-            #### Something horrible happened'
-            pass
+            #### Something horrible happened
+
+            raise SyntaxError('Input should either be all 3 parameters or use a file')
+
+
+
+## EOF ##
